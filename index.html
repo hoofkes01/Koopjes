@@ -25,6 +25,12 @@
   li a { display:flex; justify-content:space-between; gap:12px; padding:14px; background:var(--card); border:1px solid var(--line); border-radius:8px; color:inherit; text-decoration:none; }
   li a:hover { border-color:var(--accent); }
   li small { color:var(--muted); }
+  #slim { margin-bottom:28px; }
+  .opts { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .opts input[type=password] { padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
+  #sout .r { padding:14px; background:var(--card); border:1px solid var(--line); border-radius:8px; margin-bottom:8px; }
+  #sout .r b { color:var(--accent); }
+  #sout .fout { color:#c0392b; }
   .note { margin-top:20px; font-size:14px; color:var(--muted); }
 </style>
 </head>
@@ -33,6 +39,19 @@
   <h1>Koopjes zoeker</h1>
   <p class="sub">Eén zoekopdracht, direct de goedkoopste resultaten op de beste sites.</p>
 
+  <section id="slim">
+    <form id="sf">
+      <input type="search" id="sq" placeholder="Product + typenummer, bijv. Samsung QE55Q60D" required>
+      <button>Zoek goedkoopste</button>
+    </form>
+    <div class="opts">
+      <label><input type="checkbox" id="stw"> ook tweedehands</label>
+      <input type="password" id="scode" placeholder="toegangscode" autocomplete="off">
+    </div>
+    <div id="sout"></div>
+  </section>
+
+  <h2>Of zoek zelf op de sites</h2>
   <form id="f">
     <input type="search" id="q" placeholder="Wat zoek je? bijv. Sony WH-1000XM5" required autofocus>
     <button>Zoek</button>
@@ -47,6 +66,24 @@
 
 <script>
 const E = encodeURIComponent;
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const veilig = u => /^https?:\/\//.test(u) ? esc(u) : "#";
+try { document.getElementById("scode").value = localStorage.getItem("code") || ""; } catch {}
+document.getElementById("sf").addEventListener("submit", async e => {
+  e.preventDefault();
+  const out = document.getElementById("sout"), code = document.getElementById("scode").value;
+  try { localStorage.setItem("code", code); } catch {}
+  out.innerHTML = "<p>Bezig met zoeken, dit duurt 20 tot 60 seconden...</p>";
+  try {
+    const r = await fetch("/api/zoek", { method:"POST", headers:{ "content-type":"application/json", "x-code":code },
+      body: JSON.stringify({ product: document.getElementById("sq").value, tweedehands: document.getElementById("stw").checked }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.fout || "Zoeken mislukt");
+    out.innerHTML = `<p>${esc(d.samenvatting)}</p>` + (d.resultaten || []).map(x =>
+      `<div class="r"><b>${esc(x.prijs_totaal)}</b> bij ${esc(x.winkel)}<br>${esc(x.product)}<br><small>${esc(x.opmerking)}</small><br><a href="${veilig(x.link)}" target="_blank" rel="noopener">Naar aanbieding</a></div>`).join("")
+      + ((d.niet_gelezen || []).length ? `<p class="note">Niet kunnen lezen: ${esc(d.niet_gelezen.join(", "))}. Controleer die zelf hieronder.</p>` : "");
+  } catch (err) { out.innerHTML = `<p class="fout">${esc(err.message)}</p>`; }
+});
 const SITES = {
   nieuw: [
     ["Google Shopping", "alle webwinkels", q => `https://www.google.nl/search?tbm=shop&q=${E(q)}&tbs=p_ord:p`],
