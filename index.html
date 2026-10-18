@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Koopjes zoeker</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --card:#fff; --accent:#0a7d3c; --muted:#5b6570; --line:#dde1e6; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171a; --fg:#e8eaed; --card:#1e2226; --accent:#3ecf74; --muted:#9aa4af; --line:#30363d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui,sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { margin:0 0 4px; }
+  p.sub { margin:0 0 20px; color:var(--muted); }
+  form { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  input[type=search] { flex:1 1 220px; padding:12px; font-size:16px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
+  button { padding:12px 20px; font-size:16px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .tabs label { padding:6px 12px; border:1px solid var(--line); border-radius:99px; background:var(--card); cursor:pointer; }
+  .tabs input { display:none; }
+  .tabs input:checked + span { font-weight:600; color:var(--accent); }
+  ul { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+  li a { display:flex; justify-content:space-between; gap:12px; padding:14px; background:var(--card); border:1px solid var(--line); border-radius:8px; color:inherit; text-decoration:none; }
+  li a:hover { border-color:var(--accent); }
+  li small { color:var(--muted); }
+  .note { margin-top:20px; font-size:14px; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Koopjes zoeker</h1>
+  <p class="sub">Eén zoekopdracht, direct de goedkoopste resultaten op de beste sites.</p>
+
+  <form id="f">
+    <input type="search" id="q" placeholder="Wat zoek je? bijv. Sony WH-1000XM5" required autofocus>
+    <button>Zoek</button>
+  </form>
+
+  <div class="tabs" id="tabs"></div>
+  <ul id="out"></ul>
+
+  <p class="note">Elke link opent de zoekpagina van die site, voor zover mogelijk al gesorteerd op laagste prijs.
+  Controleer altijd de totaalprijs inclusief verzending. Sommige sites negeren de sortering; sorteer dan zelf op prijs.</p>
+</main>
+
+<script>
+const E = encodeURIComponent;
+const SITES = {
+  nieuw: [
+    ["Google Shopping", "alle webwinkels", q => `https://www.google.nl/search?tbm=shop&q=${E(q)}&tbs=p_ord:p`],
+    ["Tweakers Pricewatch", "elektronica", q => `https://tweakers.net/pricewatch/zoeken/?keyword=${E(q)}`],
+    ["Kieskeurig", "prijsvergelijker", q => `https://www.kieskeurig.nl/zoeken?q=${E(q)}`],
+    ["Beslist.nl", "prijsvergelijker", q => `https://www.beslist.nl/products/r/${E(q).replace(/%20/g, "+")}/`],
+    ["Bol.com", "webwinkel", q => `https://www.bol.com/nl/nl/s/?searchtext=${E(q)}&sort=price0`],
+    ["Amazon.nl", "webwinkel", q => `https://www.amazon.nl/s?k=${E(q)}&s=price-asc-rank`]
+  ],
+  deals: [
+    ["Pepper.nl", "actuele deals", q => `https://www.pepper.nl/search?q=${E(q)}`],
+    ["Google Shopping", "alle webwinkels", q => `https://www.google.nl/search?tbm=shop&q=${E(q)}&tbs=p_ord:p`]
+  ],
+  tweedehands: [
+    ["Marktplaats", "laagste prijs eerst", q => `https://www.marktplaats.nl/q/${E(q)}/#sortBy:PRICE|sortOrder:INCREASING`],
+    ["Vinted", "kleding", q => `https://www.vinted.nl/catalog?search_text=${E(q)}&order=price_low_to_high`],
+    ["eBay.nl", "veilingen en koop-nu", q => `https://www.ebay.nl/sch/i.html?_nkw=${E(q)}&_sop=15`]
+  ],
+  reizen: [
+    ["Google Flights", "vluchten", q => `https://www.google.com/travel/flights?q=${E("Vluchten naar " + q)}`],
+    ["Booking.com", "hotels, laagste prijs", q => `https://www.booking.com/searchresults.nl.html?ss=${E(q)}&order=price`],
+    ["Trivago", "hotelvergelijker", q => `https://www.trivago.nl/nl?search=${E(q)}`]
+  ]
+};
+const LABELS = { nieuw:"Nieuw kopen", deals:"Deals", tweedehands:"Tweedehands", reizen:"Reizen" };
+
+const tabs = document.getElementById("tabs"), out = document.getElementById("out"), q = document.getElementById("q");
+tabs.innerHTML = Object.keys(SITES).map((k, i) =>
+  `<label><input type="radio" name="c" value="${k}" ${i ? "" : "checked"}><span>${LABELS[k]}</span></label>`).join("");
+
+function render() {
+  const cat = tabs.querySelector("input:checked").value, term = q.value.trim();
+  out.innerHTML = term ? SITES[cat].map(([n, d, f]) =>
+    `<li><a href="${f(term)}" target="_blank" rel="noopener"><span>${n}</span><small>${d}</small></a></li>`).join("") : "";
+}
+document.getElementById("f").addEventListener("submit", e => { e.preventDefault(); render(); });
+tabs.addEventListener("change", render);
+</script>
+</body>
+</html>
