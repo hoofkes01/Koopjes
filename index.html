@@ -54,7 +54,10 @@ const SITES = {
     ["Kieskeurig", "prijsvergelijker", q => `https://www.kieskeurig.nl/zoeken?q=${E(q)}`],
     ["Beslist.nl", "prijsvergelijker", q => `https://www.beslist.nl/products/r/${E(q).replace(/%20/g, "+")}/`],
     ["Bol.com", "webwinkel", q => `https://www.bol.com/nl/nl/s/?searchtext=${E(q)}&sort=price0`],
-    ["Amazon.nl", "webwinkel", q => `https://www.amazon.nl/s?k=${E(q)}&s=price-asc-rank`]
+    ["Amazon.nl", "webwinkel", q => `https://www.amazon.nl/s?k=${E(q)}&s=price-asc-rank`],
+    ["MediaMarkt", "elektronica", q => `https://www.mediamarkt.nl/nl/search.html?query=${E(q)}`],
+    ["Makro", "groothandel", q => `https://www.makro.nl/search?q=${E(q)}`],
+    ["iBOOD", "dagdeals", q => `https://www.ibood.com/nl/nl/s?q=${E(q)}`]
   ],
   deals: [
     ["Pepper.nl", "actuele deals", q => `https://www.pepper.nl/search?q=${E(q)}`],
@@ -65,13 +68,18 @@ const SITES = {
     ["Vinted", "kleding", q => `https://www.vinted.nl/catalog?search_text=${E(q)}&order=price_low_to_high`],
     ["eBay.nl", "veilingen en koop-nu", q => `https://www.ebay.nl/sch/i.html?_nkw=${E(q)}&_sop=15`]
   ],
+  auto: [
+    ["AutoTrader", "auto's", q => `https://www.autotrader.nl/auto-zoeken?q=${E(q)}`],
+    ["Marktplaats Auto's", "laagste prijs eerst", q => `https://www.marktplaats.nl/q/${E(q)}/#sortBy:PRICE|sortOrder:INCREASING|categoryId:91`]
+  ],
   reizen: [
     ["Google Flights", "vluchten", q => `https://www.google.com/travel/flights?q=${E("Vluchten naar " + q)}`],
     ["Booking.com", "hotels, laagste prijs", q => `https://www.booking.com/searchresults.nl.html?ss=${E(q)}&order=price`],
-    ["Trivago", "hotelvergelijker", q => `https://www.trivago.nl/nl?search=${E(q)}`]
+    ["Trivago", "hotelvergelijker", q => `https://www.trivago.nl/nl?search=${E(q)}`],
+    ["Agoda", "hotels", q => `https://www.agoda.com/nl-nl/search?textToSearch=${E(q)}`]
   ]
 };
-const LABELS = { nieuw:"Nieuw kopen", deals:"Deals", tweedehands:"Tweedehands", reizen:"Reizen" };
+const LABELS = { nieuw:"Nieuw kopen", deals:"Deals", tweedehands:"Tweedehands", auto:"Auto", reizen:"Reizen" };
 
 const tabs = document.getElementById("tabs"), out = document.getElementById("out"), q = document.getElementById("q");
 tabs.innerHTML = Object.keys(SITES).map((k, i) =>
