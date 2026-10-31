@@ -31,3 +31,23 @@ Controleer bij tijdgevoelige vragen of het antwoord nog klopt.
 npm test
 ```
 Controleert op dubbele vragen, ontbrekende velden en minimaal 10 vragen per thema per leeftijdsgroep.
+
+## Omvang en herhaling
+Voor de drie volwassen groepen (18-35, 36-55, 56+) zitten er per thema minimaal 100 vragen in de bank,
+genoeg voor 10 quizzen van 10 vragen per ronde zonder herhaling. Kinderen en tieners hebben minder vragen
+(kinderen: 10 tot 20 per thema, tieners: 13 tot 30).
+
+De app onthoudt in de browser welke vragen je hebt geprint. Die komen niet meer voor in een nieuwe quiz.
+Met ‘Gebruikte vragen wissen’ begin je opnieuw. Vraag-id’s zijn gebaseerd op de vraagtekst, dus je kunt
+vragen toevoegen zonder dat de ‘gebruikt’-lijst in de war raakt (pas wel geen bestaande vraagtekst aan
+als je die lijst wilt behouden).
+
+## Uitbreiden
+Nieuwe vragen komen in `js/extra/` (per thema een bestand; voeg een `<script>`-regel toe in `index.html`).
+`npm test` controleert daarna of alles nog klopt.
+
+## Juistheid van de antwoorden
+De vragen zijn geschreven op basis van algemeen bekende, onomstreden feiten. Twijfelgevallen zijn weggelaten
+of aangepast en een steekproef is online gecontroleerd. Niet elke vraag is apart nagezocht: loop de
+antwoorden door voordat je een quiz gebruikt, vooral bij tijdgevoelige vragen (bijvoorbeeld het aantal
+Songfestival-winnaars, het btw-tarief of de bevolkingsgrootte van landen).

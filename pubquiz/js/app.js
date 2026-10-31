@@ -27,18 +27,43 @@
     return a;
   }
 
-  // Vragen van een categorie die bij de leeftijdsgroep passen.
-  function pool(catId, groep) {
-    return B.vragen[catId]
-      .map((q, i) => ({ id: catId + ':' + i, v: q[0], a: q[1], g: q[2], o: q[3] }))
-      .filter((q) => q.g.includes(String(groep)));
+  // Vragen die al gebruikt zijn (geprint). Die komen niet opnieuw in een nieuwe quiz.
+  const GEBRUIKT = 'pubquiz-gebruikt-v1';
+  let gebruikt = new Set();
+  function laadGebruikt() {
+    try { gebruikt = new Set(JSON.parse(localStorage.getItem(GEBRUIKT)) || []); } catch (e) { gebruikt = new Set(); }
+  }
+  function bewaarGebruikt() {
+    try { localStorage.setItem(GEBRUIKT, JSON.stringify(Array.from(gebruikt))); } catch (e) { /* negeren */ }
   }
 
-  function vraagUitId(id) {
-    const [c, i] = id.split(':');
-    const q = B.vragen[c] && B.vragen[c][Number(i)];
-    return q ? { id, v: q[0], a: q[1], g: q[2], o: q[3] } : null;
+  // Vragen van een categorie die bij de leeftijdsgroep passen.
+  // Standaard alleen nieuwe vragen; met alles=true ook de gebruikte.
+  function pool(catId, groep, alles) {
+    return ALLE[catId].filter((q) => q.g.includes(String(groep)) && (alles || !gebruikt.has(q.id)));
   }
+
+  function nieuweRonde(catId, groep, perRonde) {
+    return { cat: catId, ids: schud(pool(catId, groep)).slice(0, perRonde).map((q) => q.id) };
+  }
+
+  // Vraag-id's zijn gebaseerd op de vraagtekst, zodat uitbreiden van de bank
+  // geen opgeslagen quizzen of 'gebruikt'-lijsten door elkaar haalt.
+  function hash(t) {
+    let h = 5381;
+    for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+  const ALLE = {};   // categorie -> lijst met vragen
+  const OP_ID = {};  // id -> vraag
+  B.categorieen.forEach((c) => {
+    ALLE[c.id] = B.vragen[c.id].map((q) => {
+      const v = { id: c.id + ':' + hash(q[0]), v: q[0], a: q[1], g: q[2], o: q[3] };
+      OP_ID[v.id] = v;
+      return v;
+    });
+  });
+  const vraagUitId = (id) => OP_ID[id] || null;
 
   let state = null; // { meta, groep, perRonde, rondes: [{ cat, ids: [] }] }
 
@@ -72,11 +97,32 @@
     $('#alles').addEventListener('click', () => cats.querySelectorAll('input').forEach((i) => (i.checked = true)));
     $('#niets').addEventListener('click', () => cats.querySelectorAll('input').forEach((i) => (i.checked = false)));
 
+    ['change', 'input'].forEach((ev) => $('#intake').addEventListener(ev, updateRest));
+    $('#wisGebruikt').addEventListener('click', () => {
+      if (!gebruikt.size || !confirm('Alle gebruikte vragen weer beschikbaar maken?')) return;
+      gebruikt = new Set();
+      bewaarGebruikt();
+      updateRest();
+      if (state) render();
+    });
     $('#datum').value = new Date().toISOString().slice(0, 10);
     $('#intake').addEventListener('submit', (e) => {
       e.preventDefault();
       maakQuiz();
     });
+  }
+
+  // Hoeveel volle quizzen zijn er nog zonder herhaling mogelijk?
+  function updateRest() {
+    const gekozen = Array.from(document.querySelectorAll('input[name=cat]:checked')).map((i) => i.value);
+    const groepEl = document.querySelector('input[name=groep]:checked');
+    const perRonde = Math.min(15, Math.max(5, parseInt($('#aantal').value, 10) || 10));
+    const t = $('#rest');
+    if (!gekozen.length || !groepEl) { t.textContent = ''; return; }
+    const groep = Number(groepEl.value);
+    const aantal = Math.min(...gekozen.map((c) => Math.floor(pool(c, groep).length / perRonde)));
+    t.textContent = `Nog ${aantal} volle ${aantal === 1 ? 'quiz' : 'quizzen'} mogelijk zonder herhaling voor deze keuze (${perRonde} vragen per ronde). ` +
+      `Gebruikte vragen: ${gebruikt.size}.`;
   }
 
   function toonFout(tekst) {
@@ -100,7 +146,7 @@
       },
       groep,
       perRonde,
-      rondes: gekozen.map((c) => ({ cat: c, ids: schud(pool(c, groep)).slice(0, perRonde).map((q) => q.id) }))
+      rondes: gekozen.map((c) => nieuweRonde(c, groep, perRonde))
     };
     bewaar();
     render();
@@ -126,7 +172,7 @@
     wortel.textContent = '';
     state.rondes.forEach((r, ri) => {
       const c = cat(r.cat);
-      const beschikbaar = pool(r.cat, state.groep).length;
+      const beschikbaar = pool(r.cat, state.groep).length + r.ids.filter((id) => !gebruikt.has(id)).length;
       const lijst = el('ol');
       r.ids.forEach((id, vi) => {
         const q = vraagUitId(id);
@@ -142,7 +188,7 @@
       });
       const kop = el('h3', { tekst: `Ronde ${ri + 1}: ${c.icoon} ${c.naam}` });
       const nota = r.ids.length < state.perRonde
-        ? el('p', { klasse: 'let', tekst: `Let op: voor deze groep zijn er maar ${beschikbaar} vragen in dit thema.` })
+        ? el('p', { klasse: 'let', tekst: `Let op: er zijn nog maar ${r.ids.length} nieuwe vragen in dit thema voor deze groep. Wis eventueel de gebruikte vragen.` })
         : null;
       wortel.appendChild(el('div', { klasse: 'ronde' }, kop, nota, lijst));
     });
@@ -158,7 +204,7 @@
     const r = state.rondes[ri];
     const vrij = pool(r.cat, state.groep).filter((q) => !r.ids.includes(q.id));
     if (!vrij.length) {
-      alert('Er zijn geen andere vragen meer beschikbaar voor dit thema en deze leeftijdsgroep.');
+      alert('Er zijn geen nieuwe vragen meer beschikbaar voor dit thema en deze leeftijdsgroep.');
       return;
     }
     r.ids[vi] = vrij[Math.floor(Math.random() * vrij.length)].id;
@@ -229,7 +275,14 @@
     a.appendChild(antw);
   }
 
+  function markeerGebruikt() {
+    state.rondes.forEach((r) => r.ids.forEach((id) => gebruikt.add(id)));
+    bewaarGebruikt();
+    updateRest();
+  }
+
   function print(soort) {
+    markeerGebruikt();
     const klasse = 'print-' + soort;
     const opruimen = () => {
       document.body.classList.remove('print-vragen', 'print-formulier', 'print-antwoorden', 'print-alles');
@@ -243,11 +296,12 @@
 
   // ---------- Opstarten ----------
   function start() {
+    laadGebruikt();
     bouwIntake();
     document.querySelectorAll('[data-print]').forEach((b) => b.addEventListener('click', () => print(b.dataset.print)));
 
     $('#opnieuw').addEventListener('click', () => {
-      state.rondes = state.rondes.map((r) => ({ cat: r.cat, ids: schud(pool(r.cat, state.groep)).slice(0, state.perRonde).map((q) => q.id) }));
+      state.rondes = state.rondes.map((r) => nieuweRonde(r.cat, state.groep, state.perRonde));
       bewaar();
       render();
     });
@@ -271,6 +325,7 @@
       document.querySelectorAll('input[name=cat]').forEach((i) => (i.checked = state.rondes.some((r) => r.cat === i.value)));
       render();
     }
+    updateRest();
   }
 
   start();
