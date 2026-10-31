@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pubquiz Maker</title>
+  <link rel="stylesheet" href="css/stijl.css">
+</head>
+<body>
+  <main class="app">
+    <header class="kop">
+      <h1>🍻 Pubquiz Maker</h1>
+      <p>Kies de leeftijdsgroep en de thema’s, stel de quiz samen en print vragen, antwoordformulieren en het antwoordenoverzicht.</p>
+    </header>
+
+    <!-- Stap 1: intake -->
+    <form id="intake" class="kaart" autocomplete="off">
+      <h2>1. Intake</h2>
+
+      <div class="rij">
+        <label>Naam van de quiz
+          <input type="text" id="naam" value="Onze Pubquiz" maxlength="60">
+        </label>
+        <label>Datum
+          <input type="date" id="datum">
+        </label>
+        <label>Quizmaster
+          <input type="text" id="quizmaster" placeholder="Bijv. Jan" maxlength="40">
+        </label>
+      </div>
+
+      <fieldset>
+        <legend>Leeftijdsgroep van het publiek</legend>
+        <div id="groepen" class="keuzes"></div>
+        <p class="hint">Kies de groep waar de meeste gasten bij horen. Alle vragen zijn gemaakt voor een gemiddeld IQ: algemene kennis, geen specialistische feiten.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Thema’s (elke thema is een ronde)</legend>
+        <div class="knoprij">
+          <button type="button" id="alles">Alles aan</button>
+          <button type="button" id="niets">Alles uit</button>
+        </div>
+        <div id="categorieen" class="keuzes"></div>
+      </fieldset>
+
+      <div class="rij">
+        <label>Vragen per ronde
+          <input type="number" id="aantal" min="5" max="15" value="10">
+        </label>
+        <label class="uitleg">Het aantal wordt automatisch lager als een thema voor deze groep minder vragen heeft.</label>
+      </div>
+
+      <p id="fout" class="fout" role="alert" hidden></p>
+      <button type="submit" class="hoofd">Quiz samenstellen</button>
+    </form>
+
+    <!-- Stap 2: overzicht + printen -->
+    <section id="resultaat" class="kaart" hidden>
+      <h2>2. Jouw quiz</h2>
+      <p id="samenvatting" class="hint"></p>
+
+      <div class="printbalk">
+        <button type="button" data-print="vragen">🖨️ Vragenlijst (voor de deelnemers)</button>
+        <button type="button" data-print="formulier">🖨️ Antwoordformulier (per team)</button>
+        <button type="button" data-print="antwoorden">🖨️ Antwoordenoverzicht (quizmaster)</button>
+        <button type="button" data-print="alles" class="hoofd">🖨️ Alles printen</button>
+      </div>
+      <div class="knoprij">
+        <button type="button" id="opnieuw">🔀 Andere vragen kiezen</button>
+        <button type="button" id="reset">Opnieuw beginnen</button>
+      </div>
+
+      <div id="rondes"></div>
+    </section>
+
+    <footer class="voet">Tip: kies bij het printen ‘Staand’ en ‘Achtergrondafbeeldingen uit’ om inkt te besparen.</footer>
+  </main>
+
+  <!-- Printgebieden: alleen zichtbaar bij printen -->
+  <div id="print-vragen" class="print-area"></div>
+  <div id="print-formulier" class="print-area"></div>
+  <div id="print-antwoorden" class="print-area"></div>
+
+  <script src="js/vragen.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
