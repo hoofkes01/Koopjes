@@ -1,0 +1,9 @@
+{
+  "name": "pubquiz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pubquiz-app met leeftijdsgroepen, thema's en printbare vragen en antwoorden",
+  "scripts": {
+    "test": "node tests/valideer.js"
+  }
+}

@@ -1,0 +1,127 @@
+:root {
+  --bg: #f4f1ea;
+  --kaart: #fff;
+  --tekst: #222;
+  --zacht: #666;
+  --lijn: #d9d4c7;
+  --accent: #b4491c;
+  --accent-donker: #8f3714;
+  --fout: #b00020;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tekst);
+  font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.app { max-width: 880px; margin: 0 auto; padding: 16px; }
+.kop h1 { margin: 8px 0 4px; }
+.kop p { margin: 0 0 16px; color: var(--zacht); }
+
+.kaart {
+  background: var(--kaart);
+  border: 1px solid var(--lijn);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.kaart h2 { margin-top: 0; }
+
+fieldset { border: 1px solid var(--lijn); border-radius: 8px; margin: 14px 0; padding: 10px 14px 14px; }
+legend { font-weight: 600; padding: 0 6px; }
+
+label { display: block; font-weight: 600; font-size: 14px; }
+label.uitleg { font-weight: 400; color: var(--zacht); align-self: end; }
+input[type=text], input[type=date], input[type=number] {
+  display: block; width: 100%; margin-top: 4px; padding: 8px 10px;
+  border: 1px solid var(--lijn); border-radius: 8px; font: inherit;
+}
+
+.rij { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.keuzes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+.keuze {
+  display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 15px;
+  border: 1px solid var(--lijn); border-radius: 8px; padding: 8px 10px; cursor: pointer;
+}
+.keuze:has(input:checked) { border-color: var(--accent); background: #fbeee7; }
+.keuze small { color: var(--zacht); font-weight: 400; display: block; }
+
+.hint { color: var(--zacht); font-size: 14px; margin: 8px 0 0; }
+.fout { color: var(--fout); font-weight: 600; }
+
+button {
+  font: inherit; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--lijn); background: #fff; color: var(--tekst);
+}
+button:hover { border-color: var(--accent); }
+button.hoofd { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.hoofd:hover { background: var(--accent-donker); }
+.knoprij, .printbalk { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.printbalk button { flex: 1 1 220px; }
+
+.ronde { border-top: 1px solid var(--lijn); margin-top: 16px; padding-top: 8px; }
+.ronde h3 { margin: 8px 0; }
+.ronde ol { margin: 0; padding-left: 0; list-style: none; }
+.ronde li {
+  display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; padding: 8px 0;
+  border-bottom: 1px dashed var(--lijn);
+}
+.ronde .nr { color: var(--zacht); font-weight: 600; }
+.ronde .antwoord { color: var(--accent-donker); font-size: 14px; }
+.ronde .opties { color: var(--zacht); font-size: 14px; }
+.ronde .wissel { padding: 2px 8px; font-size: 14px; align-self: start; }
+.ronde .let { color: #8a5a00; font-size: 14px; }
+
+.voet { text-align: center; color: var(--zacht); font-size: 13px; margin: 24px 0; }
+
+/* ---------- Printgebieden ---------- */
+.print-area { display: none; }
+
+@page { size: A4; margin: 16mm 15mm; }
+
+@media print {
+  body { background: #fff; color: #000; font-size: 12pt; }
+  .app { display: none !important; }
+
+  body.print-vragen #print-vragen,
+  body.print-formulier #print-formulier,
+  body.print-antwoorden #print-antwoorden,
+  body.print-alles .print-area { display: block; }
+
+  /* Bij 'alles': elk onderdeel begint op een nieuwe pagina */
+  body.print-alles #print-formulier,
+  body.print-alles #print-antwoorden { break-before: page; }
+
+  .pagina { break-after: page; }
+  .pagina:last-child { break-after: auto; }
+
+  .print-kop { border-bottom: 2px solid #000; margin-bottom: 10mm; padding-bottom: 3mm; }
+  .print-kop h1 { margin: 0; font-size: 20pt; }
+  .print-kop p { margin: 2mm 0 0; font-size: 11pt; }
+  .print-area h2 { font-size: 16pt; margin: 0 0 6mm; }
+  .print-area h3 { font-size: 13pt; margin: 6mm 0 3mm; }
+
+  .vragenlijst { margin: 0; padding-left: 8mm; }
+  .vragenlijst li { margin-bottom: 6mm; break-inside: avoid; }
+  .vragenlijst .opties { margin: 1mm 0 0; font-size: 11pt; }
+
+  .team { display: flex; gap: 8mm; margin-bottom: 8mm; font-weight: 600; }
+  .team span { flex: 1; border-bottom: 1px solid #000; padding-bottom: 1mm; }
+
+  .formronde { break-inside: avoid; margin-bottom: 5mm; }
+  .formronde .regel { display: flex; align-items: flex-end; gap: 3mm; height: 8mm; }
+  .formronde .regel b { width: 8mm; text-align: right; }
+  .formronde .regel i { flex: 1; border-bottom: 1px solid #000; height: 1px; }
+  .formronde .score { text-align: right; font-weight: 600; margin-top: 2mm; }
+
+  table.antw { width: 100%; border-collapse: collapse; margin-bottom: 8mm; }
+  table.antw th, table.antw td { border: 1px solid #000; padding: 2mm 3mm; text-align: left; vertical-align: top; font-size: 11pt; }
+  table.antw th { background: #eee; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.antw td.n { width: 10mm; text-align: right; }
+  table.antw td.a { width: 38%; font-weight: 600; }
+  table.antw tr { break-inside: avoid; }
+}
